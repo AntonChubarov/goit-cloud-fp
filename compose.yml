@@ -5,6 +5,8 @@ services:
     ports: ["8080:8080"]
     environment:
       DB_DSN: postgres://short:secret@db:5432/shortlink?sslmode=disable
+      PORT: 8080
+      LOG_LEVEL: DEBUG
     depends_on: [db]
 
   db:

@@ -12,12 +12,16 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy backend source code
 COPY . .
 
 # Copy built frontend into correct embed path
 COPY --from=frontend /app/web/frontend/dist ./cmd/server/dist
 
-# Now web/frontend/dist/* exists — Go embed will succeed
+# Ensure migrations folder is present for embedding
+COPY ./migrations ./cmd/server/migrations
+
+# Build Go binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o shortlink ./cmd/server
 
 # --- 3. Final image ---

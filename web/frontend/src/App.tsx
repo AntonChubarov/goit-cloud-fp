@@ -1,43 +1,71 @@
-import { useState } from 'react'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
 
 function App() {
-    const [url, setUrl] = useState("");
-    const [short, setShort] = useState("");
+    const [url, setUrl] = useState('');
+    const [short, setShort] = useState('');
+    const [copied, setCopied] = useState(false);
 
     async function shorten() {
-        const res = await fetch("/api/links", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+        const res = await fetch('/api/links', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url }),
         });
         const data = await res.json();
-        setShort(`${window.location.origin}/${data.short}`);
+        const fullShort = `${window.location.origin}/r/${data.short}`;
+        setShort(fullShort);
+        setCopied(false);
     }
 
+    const copyToClipboard = async () => {
+        await navigator.clipboard.writeText(short);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const clearForm = () => {
+        setUrl('');
+        setShort('');
+        setCopied(false);
+    };
+
     return (
-        <main className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-gray-200">
-            <h1 className="text-3xl mb-6">URL Shortener</h1>
-            <input
-                className="p-2 w-96 text-black rounded-l"
-                placeholder="https://example.com"
-                value={url}
-                onChange={e => setUrl(e.target.value)}
-            />
-            <button onClick={shorten} className="p-2 bg-purple-700 rounded-r">
-                Shorten
-            </button>
+        <main className="container">
+            <h1 className="title">🔗 URL Shortener</h1>
+
+            <div className="form">
+                <input
+                    className="input"
+                    placeholder="https://example.com"
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                />
+                <button onClick={shorten} className="button" disabled={!url.trim()}>
+                    Shorten
+                </button>
+                {(url || short) && (
+                    <button onClick={clearForm} className="clear-button">
+                        🗑 Clear
+                    </button>
+                )}
+            </div>
 
             {short && (
-                <p className="mt-4">
-                    Short link:{" "}
-                    <a className="text-sky-400" href={short}>
-                        {short}
-                    </a>
-                </p>
+                <div className="result-box">
+                    <p className="result">
+                        Short link:{' '}
+                        <a className="link" href={short} target="_blank" rel="noopener noreferrer">
+                            {short}
+                        </a>
+                    </p>
+                    <button onClick={copyToClipboard} className="copy-button">
+                        {copied ? '✅ Copied!' : '📋 Copy'}
+                    </button>
+                </div>
             )}
         </main>
     );
 }
 
-export default App
+export default App;
