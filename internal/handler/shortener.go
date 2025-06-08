@@ -32,6 +32,11 @@ type createRes struct {
 func (h *Handler) Routes() http.Handler {
 	r := chi.NewRouter()
 
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
 	r.Post("/api/links", h.create)
 	r.Get("/r/{code}", h.redirect)
 

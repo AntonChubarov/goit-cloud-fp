@@ -31,14 +31,24 @@ tag:
 	@echo "Tagging image for ECR..."
 	docker tag $(APP_NAME):$(IMAGE_TAG) $(ECR_URI):$(IMAGE_TAG)
 
-push: create-ecr login build tag
+push:
 	@echo "Pushing image to ECR..."
 	docker push $(ECR_URI):$(IMAGE_TAG)
 	@echo "Image pushed: $(ECR_URI):$(IMAGE_TAG)"
 
+prepare-image: login create-ecr build tag push
+
 lint:
 	@echo "Linting CloudFormation template..."
 	cfn-lint $(TEMPLATE_FILE)
+
+run-locally:
+	@echo "Running Service locally..."
+	docker compose up -d --build
+
+stop-local-process:
+	@echo "Stopping Service..."
+	docker compose down
 
 deploy:
 	@echo "Deploying CloudFormation stack: $(STACK_NAME)"
@@ -49,6 +59,12 @@ deploy:
 		--region $(AWS_REGION) \
 		--profile $(AWS_PROFILE)
 	@echo "Stack deployed: $(STACK_NAME)"
+	@aws cloudformation describe-stacks \
+		--stack-name $(STACK_NAME) \
+		--query "Stacks[0].Outputs" \
+		--output table \
+		--region $(AWS_REGION) \
+		--profile $(AWS_PROFILE)
 
 destroy:
 	@echo "Deleting CloudFormation stack: $(STACK_NAME)"
